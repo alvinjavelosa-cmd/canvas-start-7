@@ -1,3 +1,4 @@
+import { Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -13,6 +14,7 @@ import {
   testimonials,
   usageItems,
 } from "./content";
+import { HeroVisual } from "./hero-visual";
 import { scrollToPricing, useScrolled } from "./hooks";
 
 function Logo({ className }: { className?: string }) {
@@ -54,9 +56,14 @@ export function Hero() {
     <section className="hero">
       <div className="hero-glow-l" />
       <div className="hero-glow-r" />
-      <div className="w">
+      <div className="w hero-grid">
         <div className="hero-content">
-          <div className="hero-badge">🤖 AI-Powered Business Platform</div>
+          <div className="hero-badge">
+            <span className="hero-badge-ico" aria-hidden="true">
+              <Sparkles size={12} strokeWidth={2.5} />
+            </span>
+            AI-Powered Business Platform
+          </div>
           <h1>
             Your Business Has
             <br />
@@ -87,6 +94,7 @@ export function Hero() {
           </div>
           <p className="hero-micro">Starting at $97/month · No contracts · US &amp; Canada</p>
         </div>
+        <HeroVisual />
       </div>
     </section>
   );
