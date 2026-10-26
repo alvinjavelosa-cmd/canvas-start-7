@@ -1922,7 +1922,7 @@ section {
 }
 .hv-pipe-val {
   font-family: var(--fh);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--white);
   line-height: 1;
@@ -1932,28 +1932,102 @@ section {
   font-size: 10px;
   font-weight: 600;
   color: #4ade80;
-  margin: 4px 0 8px;
+  margin: 5px 0 12px;
 }
-.hv-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-  height: 30px;
+.hv-stages {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
 }
-.hv-bars span {
-  flex: 1;
-  border-radius: 3px 3px 1px 1px;
-  background: linear-gradient(180deg, #ee4466, rgba(168, 85, 247, 0.5));
-  transform-origin: bottom;
-  animation: hvBar 3.2s ease-in-out infinite;
+/* line between the first and last stage dots; its fill sweeps Lead → Won */
+.hv-track {
+  position: absolute;
+  top: 4px;
+  left: 16.67%;
+  right: 16.67%;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
 }
-@keyframes hvBar {
-  0%,
-  100% {
-    transform: scaleY(0.55);
+.hv-track span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #e53e3e, #a855f7);
+  transform-origin: left;
+  animation: hvTrack 4.5s ease-in-out infinite;
+}
+@keyframes hvTrack {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
   }
-  50% {
-    transform: scaleY(1);
+  66%,
+  88% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+.hv-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+}
+.hv-stage-dot {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #24242e;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.hv-stage:nth-child(2) .hv-stage-dot {
+  animation: hvStage1 4.5s ease-in-out infinite;
+}
+.hv-stage:nth-child(3) .hv-stage-dot {
+  animation: hvStage2 4.5s ease-in-out infinite;
+}
+.hv-stage:nth-child(4) .hv-stage-dot {
+  animation: hvStage3 4.5s ease-in-out infinite;
+}
+@keyframes hvStage1 {
+  0%,
+  88% {
+    background: #e53e3e;
+    border-color: #e53e3e;
+    box-shadow: 0 0 10px rgba(229, 62, 62, 0.7);
+  }
+}
+@keyframes hvStage2 {
+  0%,
+  30% {
+    background: #24242e;
+  }
+  36%,
+  88% {
+    background: #c94590;
+    border-color: #c94590;
+    box-shadow: 0 0 10px rgba(201, 69, 144, 0.7);
+  }
+}
+@keyframes hvStage3 {
+  0%,
+  62% {
+    background: #24242e;
+  }
+  68%,
+  88% {
+    background: #4ade80;
+    border-color: #4ade80;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.8);
   }
 }
 @media (prefers-reduced-motion: reduce) {

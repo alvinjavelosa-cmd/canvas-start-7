@@ -61,7 +61,7 @@ const nodes = tools.map((tool, i) => {
   return { ...tool, x, y, path: `M ${x.toFixed(1)} ${y.toFixed(1)} L ${CENTER} ${CENTER}` };
 });
 
-const BARS = [38, 52, 45, 64, 58, 76, 90];
+const STAGES = ["Lead", "Booked", "Won"];
 
 /** Hero illustration: six AI tools feeding one CRM hub, with a live activity feed. */
 export function HeroVisual() {
@@ -155,11 +155,17 @@ export function HeroVisual() {
 
       <div className="hv-card hv-pipe">
         <div className="hv-card-head">Pipeline</div>
-        <div className="hv-pipe-val">$48,200</div>
-        <div className="hv-pipe-up">▲ 18% this month</div>
-        <div className="hv-bars">
-          {BARS.map((h, i) => (
-            <span key={i} style={{ height: `${h}%`, animationDelay: `${i * 0.12}s` }} />
+        <div className="hv-pipe-val">Lead → Won</div>
+        <div className="hv-pipe-up">✓ Moved forward by AI</div>
+        <div className="hv-stages">
+          <div className="hv-track">
+            <span />
+          </div>
+          {STAGES.map((stage) => (
+            <div key={stage} className="hv-stage">
+              <span className="hv-stage-dot" />
+              {stage}
+            </div>
           ))}
         </div>
       </div>
