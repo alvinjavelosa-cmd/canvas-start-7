@@ -20,24 +20,15 @@ export function ScrollProgress() {
 const WORDS = ["AHA", "INNOVATIONS", "WORKFLOW", "AUTOMATION", "AI-STUDIO", "FUNNELS"];
 
 const randomWord = () => WORDS[Math.floor(Math.random() * WORDS.length)] ?? "AHA";
-// Blank cells between words in a column.
-const randomGap = () => 3 + Math.floor(Math.random() * 4);
 
+// speed is in px/second; the back layer is smaller and slower for depth.
 const RAIN_LAYERS = [
-  { className: "rb", fontSize: 16, density: 0.2, speed: 3 },
-  { className: "rf", fontSize: 24, density: 0.1, speed: 2 },
+  { className: "rb", fontSize: 16, density: 0.2, speed: 30 },
+  { className: "rf", fontSize: 24, density: 0.1, speed: 60 },
 ];
 
-/** A falling column that spells `word` one letter per step, then a gap, then a new word. */
-type Column = {
-  i: number;
-  y: number;
-  sp: number;
-  blue: boolean;
-  word: string;
-  pos: number;
-  gap: number;
-};
+/** One word sliding down the screen. `y` is the top of its first letter. */
+type Column = { x: number; y: number; speed: number; blue: boolean; word: string };
 
 /** Fixed page background: parallax glow orbs plus two layers of falling brand words. */
 export function BackgroundFx() {
@@ -79,9 +70,23 @@ export function BackgroundFx() {
     const layers = Array.from(fx.querySelectorAll("canvas")).flatMap((c, idx) => {
       const ctx = c.getContext("2d");
       const cfg = RAIN_LAYERS[idx];
-      return ctx && cfg ? [{ c, ctx, ...cfg, cols: [] as Column[], w: 0, h: 0 }] : [];
+      return ctx && cfg
+        ? [{ c, ctx, ...cfg, lineHeight: cfg.fontSize * 1.15, cols: [] as Column[], w: 0, h: 0 }]
+        : [];
     });
     type Layer = (typeof layers)[number];
+
+    // Give a column a new word and speed. Fresh columns start anywhere on screen;
+    // recycled ones start above the top edge with a random delay so they don't sync up.
+    const respawn = (l: Layer, col: Column, anywhere: boolean) => {
+      col.word = randomWord();
+      col.speed = l.speed * (0.7 + Math.random() * 0.6);
+      col.blue = Math.random() < 0.25;
+      const height = col.word.length * l.lineHeight;
+      col.y = anywhere
+        ? Math.random() * (l.h + height) - height
+        : -height - Math.random() * l.h * 0.6;
+    };
 
     const size = (l: Layer) => {
       l.w = window.innerWidth;
@@ -92,47 +97,40 @@ export function BackgroundFx() {
       l.cols = [];
       for (let i = 0; i < Math.ceil(l.w / l.fontSize); i++) {
         if (Math.random() < l.density) {
-          l.cols.push({
-            i,
-            y: Math.floor((Math.random() * l.h) / l.fontSize),
-            sp: l.speed + Math.floor(Math.random() * 2),
-            blue: Math.random() < 0.25,
-            word: randomWord(),
-            pos: Math.floor(Math.random() * 6),
-            gap: randomGap(),
-          });
+          const col = { x: i * l.fontSize + l.fontSize / 2, y: 0, speed: 0, blue: false, word: "" };
+          respawn(l, col, true);
+          l.cols.push(col);
         }
       }
     };
 
-    let frame = 0;
-    const draw = (l: Layer) => {
+    const draw = (l: Layer, dt: number) => {
       const x = l.ctx;
-      x.globalCompositeOperation = "destination-out";
-      x.fillStyle = "rgba(0,0,0,.05)";
-      x.fillRect(0, 0, l.w, l.h);
-      x.globalCompositeOperation = "source-over";
+      x.clearRect(0, 0, l.w, l.h);
       x.font = `${l.fontSize}px monospace`;
       x.textAlign = "center";
+      x.textBaseline = "top";
       l.cols.forEach((col) => {
-        if (frame % col.sp) return;
-        const letter = col.word[col.pos];
-        if (letter) {
-          x.fillStyle = col.blue ? "#7aa7ff" : "#ff6b6b";
-          x.fillText(letter, col.i * l.fontSize + l.fontSize / 2, col.y * l.fontSize);
-        }
-        col.pos++;
-        if (col.pos >= col.word.length + col.gap) {
-          col.word = randomWord();
-          col.pos = 0;
-          col.gap = randomGap();
-        }
-        col.y++;
-        if (col.y * l.fontSize > l.h && Math.random() > 0.975) {
-          col.y = 0;
-          col.sp = l.speed + Math.floor(Math.random() * 2);
+        col.y += col.speed * dt;
+        if (col.y > l.h) respawn(l, col, false);
+        const n = col.word.length;
+        for (let k = 0; k < n; k++) {
+          const ly = col.y + k * l.lineHeight;
+          if (ly < -l.lineHeight || ly > l.h) continue;
+          // Fade toward the top (the trail); the leading bottom letter is brightest.
+          const head = k === n - 1;
+          x.globalAlpha = 0.25 + 0.75 * ((k + 1) / n);
+          x.fillStyle = head
+            ? col.blue
+              ? "#d4e2ff"
+              : "#ffd2d2"
+            : col.blue
+              ? "#7aa7ff"
+              : "#ff6b6b";
+          x.fillText(col.word[k] ?? "", col.x, ly);
         }
       });
+      x.globalAlpha = 1;
     };
 
     layers.forEach(size);
@@ -143,14 +141,13 @@ export function BackgroundFx() {
     };
     window.addEventListener("resize", onResize);
 
-    let last = 0;
+    let last = performance.now();
     let raf = 0;
     const loop = (ts: number) => {
-      if (ts - last > 100) {
-        last = ts;
-        frame++;
-        layers.forEach(draw);
-      }
+      // Cap the step so a backgrounded tab doesn't jump on return.
+      const dt = Math.min((ts - last) / 1000, 0.05);
+      last = ts;
+      layers.forEach((l) => draw(l, dt));
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
