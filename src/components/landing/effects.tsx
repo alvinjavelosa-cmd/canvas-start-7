@@ -17,16 +17,29 @@ export function ScrollProgress() {
   return <div ref={bar} className="sp-prog" />;
 }
 
-const GLYPHS = "{}<>/\\;=[]()#$%&*+~^|⌘⬡◈✦⎔∞∑Ω⌬⏻⚙010101".split("");
+const WORDS = ["AHA", "INNOVATIONS", "WORKFLOW", "AUTOMATION", "AI-STUDIO", "FUNNELS"];
+
+const randomWord = () => WORDS[Math.floor(Math.random() * WORDS.length)] ?? "AHA";
+// Blank cells between words in a column.
+const randomGap = () => 3 + Math.floor(Math.random() * 4);
 
 const RAIN_LAYERS = [
   { className: "rb", fontSize: 16, density: 0.2, speed: 3 },
   { className: "rf", fontSize: 24, density: 0.1, speed: 2 },
 ];
 
-type Column = { i: number; y: number; sp: number; blue: boolean };
+/** A falling column that spells `word` one letter per step, then a gap, then a new word. */
+type Column = {
+  i: number;
+  y: number;
+  sp: number;
+  blue: boolean;
+  word: string;
+  pos: number;
+  gap: number;
+};
 
-/** Fixed page background: parallax glow orbs plus two layers of falling code glyphs. */
+/** Fixed page background: parallax glow orbs plus two layers of falling brand words. */
 export function BackgroundFx() {
   const root = useRef<HTMLDivElement>(null);
 
@@ -84,6 +97,9 @@ export function BackgroundFx() {
             y: Math.floor((Math.random() * l.h) / l.fontSize),
             sp: l.speed + Math.floor(Math.random() * 2),
             blue: Math.random() < 0.25,
+            word: randomWord(),
+            pos: Math.floor(Math.random() * 6),
+            gap: randomGap(),
           });
         }
       }
@@ -93,19 +109,24 @@ export function BackgroundFx() {
     const draw = (l: Layer) => {
       const x = l.ctx;
       x.globalCompositeOperation = "destination-out";
-      x.fillStyle = "rgba(0,0,0,.07)";
+      x.fillStyle = "rgba(0,0,0,.05)";
       x.fillRect(0, 0, l.w, l.h);
       x.globalCompositeOperation = "source-over";
       x.font = `${l.fontSize}px monospace`;
       x.textAlign = "center";
       l.cols.forEach((col) => {
         if (frame % col.sp) return;
-        x.fillStyle = col.blue ? "#7aa7ff" : "#ff6b6b";
-        x.fillText(
-          GLYPHS[Math.floor(Math.random() * GLYPHS.length)] ?? "",
-          col.i * l.fontSize + l.fontSize / 2,
-          col.y * l.fontSize,
-        );
+        const letter = col.word[col.pos];
+        if (letter) {
+          x.fillStyle = col.blue ? "#7aa7ff" : "#ff6b6b";
+          x.fillText(letter, col.i * l.fontSize + l.fontSize / 2, col.y * l.fontSize);
+        }
+        col.pos++;
+        if (col.pos >= col.word.length + col.gap) {
+          col.word = randomWord();
+          col.pos = 0;
+          col.gap = randomGap();
+        }
         col.y++;
         if (col.y * l.fontSize > l.h && Math.random() > 0.975) {
           col.y = 0;
