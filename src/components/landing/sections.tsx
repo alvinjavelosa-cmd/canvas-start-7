@@ -88,9 +88,11 @@ export function Hero() {
             ))}
           </div>
           <div className="hero-ctas">
-            <a href="#pricing" className="hero-cta-primary" onClick={scrollToPricing}>
-              Get One AI for Everything <span className="arr">→</span>
-            </a>
+            <span className="cta-pulse">
+              <a href="#pricing" className="hero-cta-primary" onClick={scrollToPricing}>
+                Get One AI for Everything <span className="arr">→</span>
+              </a>
+            </span>
           </div>
           <p className="hero-micro">Starting at $97/month · No contracts · US &amp; Canada</p>
         </div>
@@ -356,9 +358,11 @@ export function FinalCta() {
           Starting at $97/month.
         </p>
         <div className="finalcta-btns">
-          <a href="#pricing" className="finalcta-btn-p" onClick={scrollToPricing}>
-            Get Started — Choose Your Plan <span>→</span>
-          </a>
+          <span className="cta-pulse">
+            <a href="#pricing" className="finalcta-btn-p" onClick={scrollToPricing}>
+              Get Started — Choose Your Plan <span>→</span>
+            </a>
+          </span>
         </div>
         <p className="finalcta-micro">
           No contracts · Setup in 48 hours · Free AI builders on every plan · US &amp; Canada

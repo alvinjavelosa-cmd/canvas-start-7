@@ -76,7 +76,6 @@ a {
   top: 0;
   z-index: 100;
   background: rgba(10, 10, 10, 0.97);
-  backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding: 13px 0;
 }
@@ -1527,7 +1526,8 @@ section {
   width: 40%;
   height: 100%;
   background: linear-gradient(110deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transform: skewX(-20deg);
+  transform: translateX(0) skewX(-20deg);
+  will-change: transform;
   animation: btnShine 4.5s ease-in-out infinite;
   pointer-events: none;
   z-index: 1;
@@ -1535,38 +1535,43 @@ section {
 @keyframes btnShine {
   0%,
   55% {
-    left: -60%;
+    transform: translateX(0) skewX(-20deg);
   }
   100% {
-    left: 140%;
+    /* 200% of the button = 500% of this 40%-wide stripe */
+    transform: translateX(500%) skewX(-20deg);
   }
 }
-.hero-cta-primary,
-.finalcta-btn-p {
-  animation: btnPulse 3.2s ease-in-out infinite;
+/* glow lives on a wrapper because the buttons clip their own overflow for the shine */
+.cta-pulse {
+  position: relative;
+  display: inline-flex;
+  isolation: isolate;
+  border-radius: var(--rl);
 }
-@keyframes btnPulse {
-  0%,
-  100% {
-    box-shadow:
-      0 6px 24px rgba(229, 62, 62, 0.35),
-      0 0 0 0 rgba(168, 85, 247, 0),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  }
+.cta-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow:
+    0 8px 32px rgba(229, 62, 62, 0.5),
+    0 0 0 8px rgba(168, 85, 247, 0.12);
+  opacity: 0;
+  animation: btnGlow 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes btnGlow {
   50% {
-    box-shadow:
-      0 8px 32px rgba(229, 62, 62, 0.5),
-      0 0 0 8px rgba(168, 85, 247, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    opacity: 1;
   }
 }
-.hero-cta-primary:hover,
-.finalcta-btn-p:hover {
+.cta-pulse:hover::after {
   animation: none;
+  opacity: 0;
 }
 .pc-cta.ghost {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   transition:
     transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.25s,
@@ -1588,8 +1593,7 @@ section {
     animation: none;
     display: none;
   }
-  .hero-cta-primary,
-  .finalcta-btn-p {
+  .cta-pulse::after {
     animation: none;
   }
 }
@@ -1793,10 +1797,8 @@ section {
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.8);
-  background: rgba(20, 20, 28, 0.75);
+  background: rgba(18, 18, 26, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   transition:
     color 0.4s,
@@ -1828,12 +1830,10 @@ section {
 }
 .hv-card {
   position: absolute;
-  background: rgba(17, 17, 24, 0.78);
+  background: rgba(16, 16, 23, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   padding: 12px 14px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   animation: hvFloat2 6s ease-in-out infinite;
 }
@@ -2029,6 +2029,11 @@ section {
     border-color: #4ade80;
     box-shadow: 0 0 12px rgba(74, 222, 128, 0.8);
   }
+}
+.hv.is-paused *,
+.hv.is-paused *::before,
+.hv.is-paused *::after {
+  animation-play-state: paused !important;
 }
 @media (prefers-reduced-motion: reduce) {
   .hv *,

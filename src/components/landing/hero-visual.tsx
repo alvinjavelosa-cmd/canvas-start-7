@@ -8,7 +8,7 @@ import {
   Workflow,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SIZE = 400;
 const CENTER = SIZE / 2;
@@ -66,18 +66,33 @@ const STAGES = ["Lead", "Booked", "Won"];
 /** Hero illustration: six AI tools feeding one CRM hub, with a live activity feed. */
 export function HeroVisual() {
   const [active, setActive] = useState(0);
+  const [visible, setVisible] = useState(true);
+  const root = useRef<HTMLDivElement>(null);
+  const svg = useRef<SVGSVGElement>(null);
+
+  // Stop all animation work while the illustration is scrolled out of view (or hidden on phones).
+  useEffect(() => {
+    const el = root.current;
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([entry]) => setVisible(entry?.isIntersecting ?? true));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
+    if (visible) svg.current?.unpauseAnimations();
+    else svg.current?.pauseAnimations();
+    if (!visible) return;
     const id = window.setInterval(() => setActive((i) => (i + 1) % tools.length), 2600);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   const current = nodes[active] ?? nodes[0]!;
   const CurrentIcon = current.icon;
 
   return (
-    <div className="hv" aria-hidden="true">
-      <svg className="hv-svg" viewBox={`0 0 ${SIZE} ${SIZE}`}>
+    <div ref={root} className={visible ? "hv" : "hv is-paused"} aria-hidden="true">
+      <svg ref={svg} className="hv-svg" viewBox={`0 0 ${SIZE} ${SIZE}`}>
         <defs>
           <linearGradient id="hv-line" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#e53e3e" />

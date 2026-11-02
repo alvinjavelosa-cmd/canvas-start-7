@@ -66,7 +66,8 @@ export function BackgroundFx() {
 
     if (reduce) return () => window.removeEventListener("scroll", onScroll);
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    // The rain is faint and blurred by the mask, so 1x resolution is indistinguishable and much cheaper.
+    const dpr = 1;
     const layers = Array.from(fx.querySelectorAll("canvas")).flatMap((c, idx) => {
       const ctx = c.getContext("2d");
       const cfg = RAIN_LAYERS[idx];
